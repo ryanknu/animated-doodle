@@ -11,6 +11,16 @@ sed -i s|5050|8888|g docker-compose.yml
 sed -i s|localhost|10.4.4.4|g docker-compose.yml
 ```
 
+After that, we need to install npm packages. I have tried to make this happen
+a few ways automatically on docker start, by modifying the command and rolling
+a custom docker-entrypoint.sh, but I couldn't seem to make it happy doing those
+things. What worked was using a dockerfile to build the stack, but that's for
+deployment, not development, so I opted to not do that. So run:
+
+```
+pushd web; npm i; popd
+```
+
 After that, to bring up the stack, to run the stack:
 
 ```
