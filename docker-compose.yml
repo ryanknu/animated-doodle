@@ -1,0 +1,52 @@
+networks:
+  taco-truck:
+
+services:
+  api:
+    command: cargo r
+    environment:
+      ACCESS_CONTROL_ALLOW_ORIGIN: http://localhost:3000
+      # The AWS SDK won't construct a client without a credential source,
+      # even if you've overridden the endpoint to a server that doesn't care.
+      AWS_ACCESS_KEY_ID: doesntmatter
+      AWS_SECRET_ACCESS_KEY: doesntmatter
+      DB_HOSTNAME: dynamodb
+      HOSTNAME: localhost:5050
+      PORT: "5050"
+    depends_on:
+      - dynamodb
+    # image: rust:latest
+    image: rust:1.58
+    networks:
+      - taco-truck
+    ports:
+      - "5050:5050"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./api:/api
+    working_dir: /api
+
+  dynamodb:
+    command: -jar DynamoDBLocal.jar -sharedDb -dbPath .
+    image: amazon/dynamodb-local:latest
+    ports:
+      - "8000:8000" # todo remove this
+    networks:
+      - taco-truck
+
+  web:
+    command: npm run dev
+    environment:
+      NEXT_PUBLIC_API_URI: http://localhost:5050
+      PORT: "3000"
+    image: node:latest
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./web:/web
+    working_dir: /web
+
+version: "3.9"
