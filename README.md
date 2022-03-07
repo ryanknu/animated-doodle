@@ -85,7 +85,7 @@ JSON-LD, so that's what I used, but I did not provide schema files.
 The app uses DynamoDB so that all operations complete in constant time. No single
 request performs more than 3 operations, meaning, the maximum time spent in DynamoDB
 per request is 45ms. This can't be helped locally, but in the could you could deploy
-DAX to bring this down to a maximum of 4.5 seconds.
+DAX to bring this down to a maximum of 4.5ms (Amazon advertises 10x faster).
 
 ### "messages" Table
 
