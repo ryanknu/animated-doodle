@@ -195,7 +195,17 @@ pub async fn get_active_rooms(
 
     println!("{:?}", output.responses);
 
-    Ok(output.responses.ok_or_else(query_error)?["messages"].clone())
+    let mut rooms = output.responses.ok_or_else(query_error)?["messages"].clone();
+
+    rooms.sort_by(|a, b| {
+        let a_id = a["room_id"].as_n().unwrap();
+        let b_id = b["room_id"].as_n().unwrap();
+        let a_idx = room_ids_csv.find(a_id).unwrap();
+        let b_idx = room_ids_csv.find(b_id).unwrap();
+        a_idx.cmp(&b_idx)
+    });
+
+    Ok(rooms)
 }
 
 // Users
