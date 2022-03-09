@@ -11,7 +11,7 @@ const Chat: NextPage = () => {
   const [newRoomName, setNewRoomName] = useState("");
   const router = useRouter();
   const { room } = router.query;
-  const [userId, _userName, _a, _b, logOut] = useIdentity();
+  const [userId, userName, _a, _b, logOut] = useIdentity();
   const [rooms, currentRoom, createRoom, roomWorkingError] = useRoomControl(
     `${room}`
   );
@@ -72,8 +72,8 @@ const Chat: NextPage = () => {
           {roomWorkingError !== false ? roomWorkingError : null}
         </div>
         <div>
-          {currentRoom && userId && (
-            <ChatRoom room={currentRoom} userId={userId} />
+          {currentRoom && userId && userName && (
+            <ChatRoom room={currentRoom} {...{ userId, userName }} />
           )}
         </div>
         <div />

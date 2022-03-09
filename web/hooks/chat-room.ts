@@ -13,7 +13,7 @@ interface IMessage {
   sender_name: string;
   message: string;
 }
-interface Message {
+export interface Message {
   id: string;
   properties: IMessage;
 }

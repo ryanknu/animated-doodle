@@ -3,6 +3,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { interval } from "rxjs";
 
 const API_URI = process.env.NEXT_PUBLIC_API_URI;
 const ROOMS_API_URI = `${API_URI}/rooms`;
@@ -26,21 +27,31 @@ type HookResponse = [
 export function useRoomControl(roomId: string): HookResponse {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [workingError, setWorkingError] = useState<string | boolean>(false);
+  const [ticks, setTicks] = useState(0)
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(null)
 
+  // Interval timer to check for new rooms and room re-ordering
+  useEffect(() => {
+    const s = interval(5000).subscribe(ticks => setTicks(ticks))
+    return () => s?.unsubscribe()
+  }, [])
+
+  // Wrapper layer around async logic to get the new list of rooms
   useEffect(() => {
     let mounted = true;
     listRooms().then((rooms) => mounted && setRooms(rooms));
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [ticks]);
 
-  const currentRoom = useMemo(
-    () =>
-      rooms.find((r) => r.id.substring(r.id.lastIndexOf("/") + 1) === roomId) ||
-      null,
-    [roomId, rooms]
-  );
+  // Some logic to avoid wastefully updating currentRoom, causing flicker
+  useEffect(() => {
+    if (currentRoom && currentRoom.id.substring(currentRoom.id.lastIndexOf("/") + 1) === roomId) {
+      return
+    }
+    setCurrentRoom(rooms.find((r) => r.id.substring(r.id.lastIndexOf("/") + 1) === roomId) || null)
+  }, [roomId, rooms])
 
   async function listRooms(): Promise<Room[]> {
     let rooms: Room[] = [];
