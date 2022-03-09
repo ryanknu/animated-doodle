@@ -24,7 +24,6 @@ mod models;
 ///   - document tables in init.rs
 /// - see if we can add middleware
 /// - look for unused casts in errors.rs
-/// - double check that all id's are N and everything else is S
 
 #[tokio::main]
 async fn main() {
@@ -64,6 +63,9 @@ async fn main() {
         .unwrap();
 }
 
+/// A macro that makes consuming `HashMap<String, AttributeValue>` safer and
+/// easier.
+///
 /// DynamoDB returns data as a HashMap<String, AttributeValue>. This can be
 /// tiresome to parse and handle all situations, so we define a macro. The
 /// following statements are equivalent:
@@ -90,7 +92,7 @@ macro_rules! S {
     };
 }
 
-/// See explanation for S!, however, this works with attribute type N.
+/// See explanation for `S`, however, this works with attribute type `N`.
 macro_rules! N {
     ($map:ident,$key:literal) => {
         $map.get($key)
@@ -105,7 +107,9 @@ macro_rules! N {
     };
 }
 
-/// Retrieves the DynamoDB client. You can wrap this into a `static OnceCell`
+/// Retrieves the DynamoDB client.
+///
+/// You can wrap this into a `static OnceCell`
 /// to avoid having to call and pass this around all of the time, but, this
 /// isn't a production-grade application, and this makes things a little easier
 /// to understand where things come from as you can trace all HTTP handlers
@@ -134,6 +138,8 @@ pub async fn dynamodb_client() -> aws_sdk_dynamodb::Client {
     aws_sdk_dynamodb::Client::from_conf(config.build())
 }
 
+/// Gets the local port that the server is supposed to start up on. Defaults to
+/// port 80.
 fn port() -> String {
     match std::env::var("PORT") {
         Ok(port) => port,
@@ -141,7 +147,9 @@ fn port() -> String {
     }
 }
 
-/// Gets the hostname of the current server. This could be expanded to look at
+/// Gets the hostname of the current server.
+///
+/// This could be expanded to look at
 /// the `Host` HTTP header if we want to, but, this will work for today. It's
 /// pretty normal to have to override the hostname the server thinks it's at,
 /// with docker and proxies being very common places servers can get pretty
@@ -156,7 +164,9 @@ fn hostname() -> String {
     }
 }
 
-/// Generates a UUID for new objects. This is good enough for now. Ideally
+/// Generates a UUID for new objects.
+///
+/// This is good enough for now. Ideally
 /// what you want for DynamoDB is something that generates a random value
 /// between 0 and 99..99 (38 9's). Left-substring is a cheap way to get this
 /// but this means that multiple random outputs can have the same uuid()
@@ -164,6 +174,27 @@ fn uuid() -> String {
     fastrand::u128(u128::MIN..u128::MAX).to_string()[..38].to_owned()
 }
 
+/// The sign up handler. Creates a user whose name isn't already taken.
+///
+/// ```http
+/// POST /sign-up
+/// Accept: application/json
+/// Content-Type: application/json
+///
+/// {"name": "Ryan"}
+/// ```
+///
+/// ```http
+/// 200 OK
+/// Content-Type: application/json
+///
+/// {
+///   "id": "http://localhost:5050/users/123456",
+///   "properties": {
+///     "name": "Ryan"
+///   }
+/// }
+/// ```
 async fn sign_up(
     extract::Json(name_request): extract::Json<NameRequest>,
 ) -> Result<Json<User>, ChatError> {
@@ -186,6 +217,27 @@ async fn sign_up(
     }
 }
 
+/// The sign in handler. Signs a user in whose name is recognized.
+///
+/// ```http
+/// POST /sign-in
+/// Accept: application/json
+/// Content-Type: application/json
+///
+/// {"name": "Ryan"}
+/// ```
+///
+/// ```http
+/// 200 OK
+/// Content-Type: application/json
+///
+/// {
+///   "id": "http://localhost:5050/users/123456",
+///   "properties": {
+///     "name": "Ryan"
+///   }
+/// }
+/// ```
 async fn sign_in(
     extract::Json(name_request): extract::Json<NameRequest>,
 ) -> Result<Json<User>, ChatError> {
@@ -203,6 +255,23 @@ async fn sign_in(
     )))
 }
 
+/// The get user handler. Retrieves a user by ID.
+///
+/// ```http
+/// GET /users/123456
+/// ```
+///
+/// ```http
+/// 200 OK
+/// Content-Type: application/json
+///
+/// {
+///   "id": "http://localhost:5050/users/123456",
+///   "properties": {
+///     "name": "Ryan"
+///   }
+/// }
+/// ```
 async fn get_user(extract::Path(user_id): extract::Path<String>) -> Result<Json<User>, ChatError> {
     let dynamodb = dynamodb_client().await;
     let hostname = hostname();
@@ -359,6 +428,7 @@ async fn put_room(
     )))
 }
 
+/// Returns the site map
 async fn hateos() -> String {
     format!(
         r#"{{

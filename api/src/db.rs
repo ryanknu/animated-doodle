@@ -192,6 +192,8 @@ pub async fn get_active_rooms(
 
     let mut rooms = output.responses.ok_or_else(query_error)?["messages"].clone();
 
+    // We want to sort them by ascending index, because rightmost entry in the
+    // stack is most recently used room.
     rooms.sort_by(|a, b| {
         let a_id = a["room_id"].as_n().unwrap();
         let b_id = b["room_id"].as_n().unwrap();

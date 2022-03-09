@@ -10,6 +10,19 @@ use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 use std::num::{ParseFloatError, ParseIntError};
 
+/// This is our project's private error type. It is a very simple wrapper that
+/// has both an optional message to log to CloudWatch (if filled) and a message
+/// to send to the end user (not optional).
+///
+/// This error type can be cast into a Response object, so that you can return
+/// it to Axum.
+///
+/// This file also contains quick and dirty (admittedtly repetitive) casts from
+/// various other error types that can arise during execution so that those can
+/// be converted into ChatError and returned to Axum.
+///
+/// For the most part, you can ignore this file, the TL;DR is that this is just
+/// a mechanism that allows the app to send a uniform error back to Axum.
 pub struct ChatError {
     pub debug: Option<String>,
     pub display: String,
