@@ -175,8 +175,6 @@ pub async fn get_active_rooms(
         return Ok(vec![]);
     }
 
-    // TODO: sort the list; that's a requirement
-
     let output = dynamodb
         .batch_get_item()
         .request_items(
@@ -199,7 +197,7 @@ pub async fn get_active_rooms(
         let b_id = b["room_id"].as_n().unwrap();
         let a_idx = room_ids_csv.find(a_id).unwrap();
         let b_idx = room_ids_csv.find(b_id).unwrap();
-        a_idx.cmp(&b_idx)
+        b_idx.cmp(&a_idx)
     });
 
     Ok(rooms)

@@ -19,12 +19,6 @@ mod errors;
 mod init;
 mod models;
 
-/// Last minute todos:
-/// - document it
-///   - document tables in init.rs
-/// - see if we can add middleware
-/// - look for unused casts in errors.rs
-
 #[tokio::main]
 async fn main() {
     let dynamodb = dynamodb_client().await;
@@ -401,7 +395,6 @@ async fn get_rooms() -> Result<Json<Vec<Room>>, ChatError> {
     let mut r = Vec::new();
 
     for room in db::get_active_rooms(&dynamodb).await? {
-        println!("{:?}", &room);
         r.push(Object::room(
             &format!("http://{}/rooms/{}", hostname, N!(room, "room_id")),
             S!(room, "name"),
@@ -429,6 +422,8 @@ async fn put_room(
 }
 
 /// Returns the site map
+///
+/// This doesn't return a content-type header, boo :( oh well, can't do it all.
 async fn hateos() -> String {
     format!(
         r#"{{
