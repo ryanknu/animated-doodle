@@ -21,6 +21,13 @@ const Chat: NextPage = () => {
     setNewRoomName("");
   }, [rooms]);
 
+  // Redirect to login page if not signed in
+  useEffect(() => {
+    if (userId === null) {
+      router.replace("/")
+    }
+  }, [userId])
+
   return (
     <div>
       <Head>
@@ -44,12 +51,12 @@ const Chat: NextPage = () => {
               return currentRoom && r.id === currentRoom.id ? (
                 <li key={r.id}>#{r.properties.name} [selected]</li>
               ) : (
-                <li key={r.id}>
-                  <Link href={`/chat${r.id.substring(r.id.lastIndexOf("/"))}`}>
-                    <a>#{r.properties.name}</a>
-                  </Link>
-                </li>
-              );
+                  <li key={r.id}>
+                    <Link href={`/chat${r.id.substring(r.id.lastIndexOf("/"))}`}>
+                      <a>#{r.properties.name}</a>
+                    </Link>
+                  </li>
+                );
             })}
           </ul>
           <h2>create room</h2>

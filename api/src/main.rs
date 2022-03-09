@@ -169,6 +169,11 @@ async fn sign_up(
 ) -> Result<Json<User>, ChatError> {
     let dynamodb = dynamodb_client().await;
     let hostname = hostname();
+
+    if name_request.name.is_empty() {
+        return Err(ChatError::new(None, "Name is empty".into()));
+    }
+
     if db::user_exists(&dynamodb, &name_request.name).await {
         Err(ChatError::new(None, "Name already registered".into()))
     } else {
@@ -186,6 +191,11 @@ async fn sign_in(
 ) -> Result<Json<User>, ChatError> {
     let dynamodb = dynamodb_client().await;
     let hostname = hostname();
+
+    if name_request.name.is_empty() {
+        return Err(ChatError::new(None, "Name is empty".into()));
+    }
+
     let user = db::get_user_by_name(&dynamodb, &name_request.name).await?;
     Ok(Json(Object::user(
         &format!("http://{}/users/{}", hostname, N!(user, "user_id")),
@@ -276,6 +286,10 @@ async fn put_message(
     let id = uuid();
     let date_time = chrono::Utc::now().to_rfc3339();
 
+    if message_request.message.is_empty() {
+        return Err(ChatError::new(None, "Name is empty".into()));
+    }
+
     // Message_request.sender_id is a URI so we just need to take off the last
     // index.
     let sender_id = message_request.sender_id;
@@ -317,7 +331,6 @@ async fn get_rooms() -> Result<Json<Vec<Room>>, ChatError> {
     let hostname = hostname();
     let mut r = Vec::new();
 
-    println!("Querying rooms");
     for room in db::get_active_rooms(&dynamodb).await? {
         println!("{:?}", &room);
         r.push(Object::room(

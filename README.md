@@ -18,7 +18,7 @@ things. What worked was using a dockerfile to build the stack, but that's for
 deployment, not development, so I opted to not do that. So run:
 
 ```
-pushd web; npm i; popd
+docker run --rm node -v $PWD/web:/web -w /web npm i
 ```
 
 After that, to bring up the stack, to run the stack:

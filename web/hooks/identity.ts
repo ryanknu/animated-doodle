@@ -11,7 +11,6 @@
  */
 
 import { useEffect, useState } from "react";
-import { interval } from "rxjs";
 
 const API_URI = process.env.NEXT_PUBLIC_API_URI;
 const SIGN_UP_URI = `${API_URI}/sign-up`;
@@ -27,13 +26,13 @@ type HookResponse = [
   string | boolean
 ];
 
-const defaultIdentity = (): Identity => [
+const defaultIdentity = (): Identity => (typeof window !== "undefined") ? [
   localStorage.getItem("com.ryanknu.chat-app__id"),
   localStorage.getItem("com.ryanknu.chat-app__name"),
-];
+] : [null, null];
 
 export function useIdentity(): HookResponse {
-  const [identity, setIdentity] = useState<Identity>([null, null]);
+  const [identity, setIdentity] = useState<Identity>(defaultIdentity());
   const [apiRequest, setApiRequest] = useState<Promise<Response> | null>(null);
   const [workingError, setWorkingError] = useState<string | boolean>(false);
 
@@ -59,14 +58,19 @@ export function useIdentity(): HookResponse {
   const signIn = (name: string) => sign("in", name);
 
   useEffect(() => {
-    setIdentity(defaultIdentity());
-  }, []);
-
-  useEffect(() => {
     let mounted = true;
     apiRequest
-      ?.then((response) => response.json())
-      .then((data) => {
+      ?.then((response) => response.text())
+      .then((text) => {
+        if (text === "Result DNE or is ambiguous") {
+          setWorkingError("User already exists. Sign in instead.")
+          return
+        }
+        if (text === "Name is empty") {
+          setWorkingError("Please fill in your name.")
+          return
+        }
+        let data = JSON.parse(text);
         localStorage.setItem("com.ryanknu.chat-app__id", data.id);
         localStorage.setItem(
           "com.ryanknu.chat-app__name",

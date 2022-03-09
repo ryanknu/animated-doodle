@@ -155,7 +155,6 @@ pub async fn get_active_rooms(
     dynamodb: &aws_sdk_dynamodb::Client,
 ) -> Result<Vec<HashMap<String, AttributeValue>>, ChatError> {
     let room_ids_csv = get_active_rooms_scalar(dynamodb).await?;
-    println!("{:?}", &room_ids_csv);
 
     let mut room_ids: Vec<HashMap<String, AttributeValue>> = Vec::new();
     for room_id in room_ids_csv.split(",") {
@@ -171,8 +170,6 @@ pub async fn get_active_rooms(
         primary_key.insert("sort".into(), AttributeValue::S("room".into()));
         room_ids.push(primary_key);
     }
-
-    println!("{:?}", &room_ids);
 
     if room_ids.is_empty() {
         return Ok(vec![]);
@@ -192,8 +189,6 @@ pub async fn get_active_rooms(
         )
         .send()
         .await?;
-
-    println!("{:?}", output.responses);
 
     let mut rooms = output.responses.ok_or_else(query_error)?["messages"].clone();
 
@@ -251,7 +246,7 @@ pub async fn get_user_by_name(
         .query()
         .table_name("users")
         .index_name("name-index")
-        .projection_expression("user_id,name")
+        .projection_expression("user_id,#n")
         .key_condition_expression("#n=:n")
         .expression_attribute_names("#n", "name")
         .expression_attribute_values(":n", AttributeValue::S(user_name.to_owned()))

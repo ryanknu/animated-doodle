@@ -8,7 +8,7 @@ import styles from "../styles/Home.module.css";
 
 const Home: NextPage = () => {
   const [name, setName] = useState("");
-  const [userId, _userName, signIn, signUp, _signOut, workingError] =
+  const [userId, _userName, signUp, signIn, _signOut, workingError] =
     useIdentity();
   const apiIsHealthy = useApiHealthChecker();
   const router = useRouter();
